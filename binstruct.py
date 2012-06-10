@@ -1,4 +1,6 @@
 # binstruct - binary structure serialization
+# ==========================================
+# https://github.com/albertz/binstruct/
 # code by Albert Zeyer, www.az2000.de, 2012-06-10
 # code under BSD
 
