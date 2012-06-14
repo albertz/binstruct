@@ -31,6 +31,7 @@
 ### This format.
 
 FILESIGNATURE = "BINSTRUCT.1\x00"
+FILESIGNATURE_CRYPTED = "BINSTRUCT.CRYPTED.1\x00"
 class FormatError(Exception): pass
 from array import array
 from StringIO import StringIO
@@ -201,9 +202,13 @@ def dictEncode(d):
 		bin += varEncode(value)
 	return bin
 
+class Dict(dict):
+	def __getattr__(self, key): return dict.__getitem__(self, key)
+	def __setattr__(self, key, value): return dict.__setitem__(self, key, value)
+
 def dictDecode(stream):
 	dictLen = intDecode(stream)
-	d = {}
+	d = Dict()
 	for i in range(dictLen):
 		key = varDecode(stream)
 		value = varDecode(stream)
@@ -355,6 +360,18 @@ def decrypt(stream, decrypt_rsaprivkey, verifysign_rsapubkey=None):
 		pss = PKCS1_PSS.new(verifysign_rsapubkey)
 		if not pss.verify(h, sign): raise FormatError("signature is not authentic")
 	return v
+
+def writeEncrypt(file, v, encrypt_rsapubkey, sign_rsaprivkey=None):
+	if isinstance(file, (str,unicode)): file = open(file, "wb")
+	file.write(FILESIGNATURE_CRYPTED)
+	file.write(encrypt(v, encrypt_rsapubkey, sign_rsaprivkey).tostring())
+	return file
+
+def readDecrypt(file, decrypt_rsaprivkey, verifysign_rsapubkey=None):
+	if isinstance(file, (str,unicode)): file = open(file, "b")
+	sig = file.read(len(FILESIGNATURE_CRYPTED))
+	if sig != FILESIGNATURE_CRYPTED: raise FormatError("file signature wrong")
+	return decrypt(file, decrypt_rsaprivkey, verifysign_rsapubkey)
 
 # Some tests.
 
