@@ -279,7 +279,7 @@ def write(file, v):
 	return file
 
 def read(file):
-	if isinstance(file, (str,unicode)): file = open(file, "b")
+	if isinstance(file, (str,unicode)): file = open(file, "rb")
 	sig = file.read(len(FILESIGNATURE))
 	if sig != FILESIGNATURE: raise FormatError("file signature wrong")
 	return varDecode(file)
@@ -363,7 +363,7 @@ def writeEncrypt(file, v, encrypt_rsapubkey=None, sign_rsaprivkey=None):
 	return file
 
 def readDecrypt(file, decrypt_rsaprivkey=None, verifysign_rsapubkey=None):
-	if isinstance(file, (str,unicode)): file = open(file, "b")
+	if isinstance(file, (str,unicode)): file = open(file, "rb")
 	sig = file.read(len(FILESIGNATURE_CRYPTED))
 	if sig != FILESIGNATURE_CRYPTED: raise FormatError("file signature wrong")
 	return decrypt(varDecode(file), decrypt_rsaprivkey, verifysign_rsapubkey)
