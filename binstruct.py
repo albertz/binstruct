@@ -329,12 +329,21 @@ def encrypt(v, encrypt_rsapubkey=None, sign_rsaprivkey=None):
 		out["signature"] = None
 	return out
 
+def verifyData(data, sign, verifysign_rsapubkey):
+	from Crypto.PublicKey import RSA
+	from Crypto.Signature import PKCS1_PSS
+	from Crypto.Hash import SHA512
+	h = SHA512.new()
+	h.update(data)
+	verifysign_rsapubkey = RSA.importKey(verifysign_rsapubkey)
+	pss = PKCS1_PSS.new(verifysign_rsapubkey)
+	if not pss.verify(h, sign):
+		raise FormatError("signature is not authentic")		
+	
 def decrypt(data, decrypt_rsaprivkey=None, verifysign_rsapubkey=None):
 	from Crypto.PublicKey import RSA
 	from Crypto.Cipher import PKCS1_OAEP
 	from Crypto.Cipher import AES
-	from Crypto.Signature import PKCS1_PSS
-	from Crypto.Hash import SHA512
 	if data["encrypted"]:
 		if not decrypt_rsaprivkey: raise FormatError("data is encrypted, key missing")
 		decrypt_rsaprivkey = RSA.importKey(decrypt_rsaprivkey)
@@ -349,11 +358,7 @@ def decrypt(data, decrypt_rsaprivkey=None, verifysign_rsapubkey=None):
 	if verifysign_rsapubkey:
 		sign = data["signature"]
 		if not sign: raise FormatError("signature missing")
-		h = SHA512.new()
-		h.update(data["data"])
-		verifysign_rsapubkey = RSA.importKey(verifysign_rsapubkey)
-		pss = PKCS1_PSS.new(verifysign_rsapubkey)
-		if not pss.verify(h, sign): raise FormatError("signature is not authentic")		
+		verifyData(data["data"], sign, verifysign_rsapubkey)
 	return varDecode(outdata)
 
 def writeEncrypt(file, v, encrypt_rsapubkey=None, sign_rsaprivkey=None):
@@ -368,6 +373,15 @@ def readDecrypt(file, decrypt_rsaprivkey=None, verifysign_rsapubkey=None):
 	if sig != FILESIGNATURE_CRYPTED: raise FormatError("file signature wrong")
 	return decrypt(varDecode(file), decrypt_rsaprivkey, verifysign_rsapubkey)
 
+def verifyFile(file, verifysign_rsapubkey):
+	if isinstance(file, (str,unicode)): file = open(file, "rb")
+	sig = file.read(len(FILESIGNATURE_CRYPTED))
+	if sig != FILESIGNATURE_CRYPTED: raise FormatError("file signature wrong")
+	data = varDecode(file)
+	sign = data["signature"]
+	if not sign: raise FormatError("signature missing")
+	verifyData(data["data"], sign, verifysign_rsapubkey)
+	
 # Some tests.
 
 def test_crypto():
