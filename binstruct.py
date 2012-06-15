@@ -197,7 +197,7 @@ def listDecode(stream):
 
 def dictEncode(d):
 	bin = intEncode(len(d))
-	for key,value in d.items():
+	for key,value in sorted(d.items()):
 		bin += varEncode(key)
 		bin += varEncode(value)
 	return bin
@@ -371,7 +371,7 @@ def readDecrypt(file, decrypt_rsaprivkey=None, verifysign_rsapubkey=None):
 # Some tests.
 
 def test_crypto():
-	v = {"hello":"world"}
+	v = {"hello":"world", 1:False, 42:-2**1024, "foo":None}
 	pub1,priv1 = genkeypair()
 	pub2,priv2 = genkeypair()
 	pub3,priv3 = genkeypair()
@@ -389,6 +389,8 @@ def test_crypto():
 	just_signed = encrypt(v, sign_rsaprivkey=priv1)
 	decrypted1 = decrypt(just_signed, priv2)
 	decrypted2 = decrypt(just_signed, priv2, pub1)
+	assert v == decrypted1, repr(v) + " != " + repr(decrypted1)
+	assert v == decrypted2, repr(v) + " != " + repr(decrypted2)
 	try:
 		decrypt(encrypted_signed, priv1, pub3)
 		assert False, "signature wrongly assumed authentic (2)"
