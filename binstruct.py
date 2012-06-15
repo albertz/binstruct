@@ -371,7 +371,7 @@ def readDecrypt(file, decrypt_rsaprivkey=None, verifysign_rsapubkey=None):
 # Some tests.
 
 def test_crypto():
-	v = {"hello":"world", 1:False, 42:-2**1024, "foo":None}
+	v = {"hello":"world", 1:False, 42:-2**1024, "foo":None, "bar":[0.5,1,None,1.345,[]]}
 	pub1,priv1 = genkeypair()
 	pub2,priv2 = genkeypair()
 	pub3,priv3 = genkeypair()
