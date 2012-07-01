@@ -251,7 +251,7 @@ def varEncode(v):
 		typeEncoded = array("B", (1,))
 		lenEncoded = intEncode(len(data) + 1)
 		return lenEncoded + typeEncoded + data
-	assert False
+	assert False, "type of " + repr(v) + " cannot be encoded"
 
 def varDecode(stream):
 	if isinstance(stream, array): stream = stream.tostring()
