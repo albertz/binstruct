@@ -50,6 +50,9 @@ OGDL:
  - too simple
 ...
 
+More, without details:
+* CBOR ([RFC](http://tools.ietf.org/html/rfc7049), [HN discussion](https://news.ycombinator.com/item?id=6632576))
+
 ## This format.
 
 Bool. Byte \x00 or \x01.
