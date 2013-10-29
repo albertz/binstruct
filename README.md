@@ -76,9 +76,9 @@ with num<0 we get -inf.
 Strings. Just size + string.
 If this is a text, please let's all just stick to UTF8.
 
-Lists. Amounts of items, each item as variant.
+Lists. Amount of items, each item as variant.
 
-Dicts. Amounts of items, each item as 2 variants (key+value).
+Dicts. Amount of items, each item as 2 variants (key+value).
 
 Variants. Bytesize + type-ID-byte + data.
 Type-IDs:
