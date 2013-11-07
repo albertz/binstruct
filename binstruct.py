@@ -95,7 +95,7 @@ def eliasGammaEncode(n):
 	assert n > 0
 	bitLen = bitsOf(n)
 	binData = [False] * (bitLen - 1) # prefix
-	bit = 2 ** (bitLen - 1)
+	bit = 1 << (bitLen - 1)
 	while bit > 0:
 		binData += [bool(n & bit)]
 		bit >>= 1
@@ -106,7 +106,7 @@ def eliasGammaDecode(stream):
 	def readBits():
 		while True:
 			byte = ord(stream.read(1))
-			bitM = 2 ** 7
+			bitM = 1 << 7
 			while bitM > 0:
 				yield bool(byte & bitM)
 				bitM >>= 1
@@ -130,7 +130,7 @@ def intToBin(x):
 	byteLen = (bitLen+7) / 8
 	bin = array("B", (0,)) * byteLen
 	if x < 0:
-		x += 256 ** byteLen
+		x += 1 << (byteLen * 8)
 		assert x > 0
 	for i in range(byteLen):
 		bin[byteLen-i-1] = (x >> (i * 8)) & 255
@@ -142,8 +142,8 @@ def binToInt(bin):
 	byteLen = len(bin)
 	for i in range(byteLen):
 		n += bin[byteLen-i-1] << (i * 8)
-	if n >= 2**(byteLen*8 - 1):
-		n -= 256 ** byteLen
+	if n >= 1 << (byteLen*8 - 1):
+		n -= 1 << (byteLen * 8)
 	return n
 
 def intEncode(x):
@@ -408,6 +408,7 @@ def verifyFile(file, verifysign_rsapubkey):
 	if not sign: raise FormatError("signature missing")
 	verifyData(data["data"], sign, verifysign_rsapubkey)
 	
+
 # Some tests.
 
 def test_crypto():
@@ -436,3 +437,59 @@ def test_crypto():
 		assert False, "signature wrongly assumed authentic (2)"
 	except FormatError: pass
 	
+
+def test():
+	# bitsOf
+	for (arg, res) in [(0,0), (255,8), (256,9), (1<<1000-1,1000)]:
+		assert bitsOf(arg) == res
+	
+	# bitListToInt
+	for (arg, res) in [([1,0,0,0],8)]:
+		assert bitListToInt(arg) == res
+	
+	# eliasGammaEncode + decode
+	for (value, raw) in [
+		(1, '\x80'),
+		(255, '\x01\xfe'),
+		(127, '\x03\xf8'),
+		(16, '\x08\x00'),
+		(8, '\x10'),
+		(15, '\x1e')
+	]:
+		assert eliasGammaEncode(value).tostring() == raw
+		assert eliasGammaDecode(StringIO(raw)) == value
+		
+	# varEncode + decode
+	for (value, raw) in [
+		(42, '\x80\x03\x04\x80*'),
+		("hello", '\x80\x08\x06\x80\x05hello'),
+		([1,False,-1,0.5,"hi",{2:3}],
+			'\x800\x01\x80\x06\x80\x03\x04\x80\x01\x80\x02' +
+			'\x03\x00\x80\x03\x04\x80\xff\x80\x07\x05\x80' +
+			'\x01\x80\x02\x80\x00\x80\x05\x06\x80\x02hi\x80' +
+			'\r\x02\x80\x01\x80\x03\x04\x80\x02\x80\x03\x04\x80\x03'),
+	]:
+		assert varEncode(value).tostring() == raw
+		assert varDecode(StringIO(raw)) == value
+
+
+# Some RPython tests.
+# For RPython lang def, see: http://doc.pypy.org/en/latest/coding-guide.html#rpython-definition
+
+def main(argv):
+	print "Hello!"
+	print "args:", argv
+	print "%r" % varEncode(argv)
+	test()
+	print "Bye!"
+
+def target(driver, args):
+	"""
+	Target function for RPython.
+	"""
+	return main, None
+
+if __name__ == '__main__':
+	test()
+	print "tests passed"
+
