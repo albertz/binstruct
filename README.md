@@ -98,3 +98,6 @@ File IO
 Encryption / decryption. Authorization
 
 Some tests.
+
+Some RPython tests.
+For RPython lang def, see: http://doc.pypy.org/en/latest/coding-guide.html#rpython-definition
