@@ -42,6 +42,7 @@ BSON:
  - keys in structs are only C-strings. I want
    any possible data here.
  - already too complicated
+ - (+) It's well-known, used as main-format in MongoDB.
 
 Bencode:
  - too restricted, too less formats
@@ -55,6 +56,8 @@ More, without details:
 * msgpack
 * Google's Protocol Buffers
 * [Apache (Facebook) Thrift](http://thrift.apache.org/)
+* XDR
+* ASN.1
 
 ## This format.
 
